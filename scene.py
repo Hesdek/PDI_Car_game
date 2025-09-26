@@ -11,7 +11,7 @@ class Scene:
         self.assets_path = assets_path
 
         # Colores y parámetros
-        self.SKY_COLOR = (6, 10, 40)
+        self.SKY_COLOR = (1, 10, 28)
         self.GRASS_COLOR = (0, 50, 0)
         self.ROAD_COLOR = (60, 60, 60)
         self.LINE_COLOR = (230, 230, 230)

@@ -15,7 +15,7 @@ class Player:
         self.img = load_image(os.path.join(assets_path, "car.png"), (self.PW, self.PH)) if True else None
         self.x = width // 2 - self.PW // 2
         self.y = height - self.PH - 28
-        self.speed = 7
+        self.speed = 5
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
