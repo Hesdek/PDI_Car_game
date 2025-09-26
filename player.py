@@ -1,4 +1,5 @@
 import pygame
+import os
 from utils import load_image
 
 class Player:
@@ -6,8 +7,10 @@ class Player:
         self.screen = screen
         self.WIDTH = width
         self.HEIGHT = height
+
         # dimensiones del sprite (puedes ajustar)
         self.PW, self.PH = 160, 90
+
         # cargar sprite (fallback a rect)
         self.img = load_image(os.path.join(assets_path, "car.png"), (self.PW, self.PH)) if True else None
         self.x = width // 2 - self.PW // 2

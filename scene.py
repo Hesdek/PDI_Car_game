@@ -10,7 +10,7 @@ class Scene:
         self.HEIGHT = height
         self.assets_path = assets_path
 
-        # Colores y parámetros (puedes ajustar)
+        # Colores y parámetros
         self.SKY_COLOR = (6, 10, 40)
         self.GRASS_COLOR = (0, 50, 0)
         self.ROAD_COLOR = (60, 60, 60)
@@ -37,11 +37,8 @@ class Scene:
         self.CURB_PHASE_SPEED = 1.05
         self.SIDE_PHASE_SPEED = 0.9
 
-        # Cargar ciudad
-        try:
-            self.city_img = load_image(os.path.join(assets_path, "city.png"), (self.WIDTH, 140))
-        except Exception:
-            self.city_img = None
+        # cargar imagen ciudad (fallback a rectángulos)
+        self.city_img = load_image(os.path.join(assets_path, "city.png"), (self.WIDTH, 140))
 
         # precalcular niebla (a baja resol y smoothscale para evitar banding)
         self.fog_height = 90
@@ -84,6 +81,7 @@ class Scene:
 
         # pasto
         gfx.box(self.screen, (0, self.HEIGHT//2, self.WIDTH, self.HEIGHT//2), self.GRASS_COLOR)
+
 
         # dibujar road por segmentos
         for i in range(self.NUM_SEGMENTS):
