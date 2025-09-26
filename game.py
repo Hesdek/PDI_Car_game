@@ -1,70 +1,127 @@
 import pygame
-from settings import WIDTH, HEIGHT, FPS
-from assets import screen, soundtrack, tires, crash
-from ui import show_score, show_message
-from player.py import Player
-from enemy import Truck
-from background import Background
+import os
+import sys
 
-def game_loop():
-    clock = pygame.time.Clock()
+pygame.init()
 
-    # Objetos
-    player = Player()
-    bg = Background(speed=4)
-    truck = Truck(speed=6)
+# Configuración de ventana
+WIDTH, HEIGHT = 1000, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    score = 0
-    soundtrack.play(-1)
+# Colores
+SKY_COLOR = (0, 0, 50)
+GRASS_COLOR = (0, 120, 0)
+ROAD_COLOR = (100, 100, 100)
+BORDER_COLORS = [(255, 0, 0), (255, 255, 255)]  # rojo y blanco
 
-    running = True
-    while running:
-        clock.tick(FPS)
+# FPS
+clock = pygame.time.Clock()
+FPS = 60
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.x_change = -6
-                if event.key == pygame.K_RIGHT:
-                    player.x_change = 6
-                if event.key == pygame.K_UP:
-                    bg.speed += 1
-                if event.key == pygame.K_DOWN and bg.speed > 2:
-                    bg.speed -= 1
-                truck.speed = bg.speed + 2
+# Assets
+assets_path = "assets"
+city_img = pygame.image.load(os.path.join(assets_path, "city.png"))
+city_img = pygame.transform.scale(city_img, (WIDTH, 300))
 
-            if event.type == pygame.KEYUP:
-                if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                    player.x_change = 0
+player_img = pygame.image.load(os.path.join(assets_path, "car.png"))
+PLAYER_WIDTH, PLAYER_HEIGHT = 160, 90
+player_img = pygame.transform.scale(player_img, (PLAYER_WIDTH, PLAYER_HEIGHT))
 
-        # --- Actualizar ---
-        player.move()
-        bg.update()
-        truck.update()
+# Posición inicial del carro
+player_x = WIDTH // 2 - PLAYER_WIDTH // 2
+player_y = HEIGHT - PLAYER_HEIGHT - 20
+player_speed = 7
 
-        if truck.y > HEIGHT:
-            truck.reset(bg.speed + 2)
-            score += 1
+# Segmentos de carretera
+NUM_SEGMENTS = 30
+segment_height = HEIGHT // NUM_SEGMENTS
+road_segments = []
 
-        # --- Colisiones ---
-        if player.get_rect().colliderect(truck.get_rect()):
-            crash.play()
-            show_message("¡Chocaste con un camión!")
-            return  # salir del bucle y reiniciar
+for i in range(NUM_SEGMENTS):
+    road_segments.append({
+        "y": i * segment_height,
+        "color": BORDER_COLORS[i % 2]
+    })
 
-        if player.x < 35 or player.x > WIDTH - 87:
-            tires.play()
-            crash.play()
-            show_message("¡Te saliste de la carretera!")
-            return
+scroll = 0
+road_speed = 5  # velocidad carretera
 
-        # --- Dibujar ---
-        bg.draw(screen)
-        truck.draw(screen)
-        player.draw(screen)
-        show_score(score)
 
-        pygame.display.flip()
+def draw_scene():
+    global scroll, player_x
+
+    # Fondo cielo
+    screen.fill(SKY_COLOR)
+
+    # Ciudad
+    screen.blit(city_img, (0, 50))
+
+    # Pasto
+    pygame.draw.rect(screen, GRASS_COLOR, (0, HEIGHT // 2, WIDTH, HEIGHT // 2))
+
+    # Dibujar carretera
+    for i, seg in enumerate(road_segments):
+        # Calcular "perspectiva" escalando ancho
+        perspective = 1 - (i / NUM_SEGMENTS)  # AHORA se invierte la escala
+        road_w = int(WIDTH * perspective * 0.8)
+        x1 = WIDTH // 2 - road_w // 2
+        x2 = WIDTH // 2 + road_w // 2
+        y = HEIGHT - i * segment_height + scroll
+
+        if HEIGHT // 2 < y < HEIGHT:  # dibujar solo en parte baja
+            # carretera
+            pygame.draw.polygon(screen, ROAD_COLOR,
+                                [(x1, y), (x2, y),
+                                 (x2 + 20, y + segment_height),
+                                 (x1 - 20, y + segment_height)])
+
+            # bordes
+            pygame.draw.polygon(screen, seg["color"],
+                                [(x1 - 20, y), (x1, y),
+                                 (x1, y + segment_height),
+                                 (x1 - 20, y + segment_height)])
+            pygame.draw.polygon(screen, seg["color"],
+                                [(x2, y), (x2 + 20, y),
+                                 (x2 + 20, y + segment_height),
+                                 (x2, y + segment_height)])
+
+    # Carro (con movimiento horizontal)
+    screen.blit(player_img, (player_x, player_y))
+
+
+def update_segments():
+    global scroll, road_segments
+    scroll += road_speed
+    if scroll >= segment_height:
+        scroll = 0
+        road_segments.append(road_segments.pop(0))  # reciclar segmento
+
+
+# Loop principal
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Controles
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT]:
+        player_x += player_speed
+
+    # Limitar movimiento en pantalla
+    if player_x < 100:
+        player_x = 100
+    if player_x > WIDTH - 100 - PLAYER_WIDTH:
+        player_x = WIDTH - 100 - PLAYER_WIDTH
+
+    update_segments()
+    draw_scene()
+
+    pygame.display.flip()
+    clock.tick(FPS)
+
+pygame.quit()
+sys.exit()
