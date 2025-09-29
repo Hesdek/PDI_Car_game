@@ -16,13 +16,13 @@ class Game:
     def update(self):
         dt = self.clock.tick(self.FPS) / 1000.0
         # input & player movement
-        self.player.handle_input()
+        self.player.handle_input(dt)
         self.player.update(dt)
         # actualizar escena (scroll + fases)
         self.scene.update(dt)
 
     def draw(self):
         # scene dibuja la carretera y la ciudad
-        self.scene.draw(player_x=self.player.x)
-        # dibujar el carro encima
+        self.scene.draw(player_offset=self.player.offset)
+        # dibujar el carro encima (fijo en centro)
         self.player.draw()
