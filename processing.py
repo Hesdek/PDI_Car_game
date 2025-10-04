@@ -1,99 +1,79 @@
 import cv2
 import numpy as np
 
-def camera_processing():
+def detectar_estado_mano():
     # Abrir cámara
     cap = cv2.VideoCapture(0)
 
     while True:
         ret, frame = cap.read()
-    if not ret:
-        break
+        if not ret:
+            break
 
-    # Voltear imagen (efecto espejo)
-    frame = cv2.flip(frame, 1)
+        # Voltear imagen (efecto espejo)
+        frame = cv2.flip(frame, 1)
 
-    # Convertir a HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # Convertir a HSV
+        image_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # Cambié RGB2HSV por BGR2HSV
+        
+        # Rango para VERDE https://www.selecolor.com/en/hsv-color-picker/
+        limite_inferior_verde = np.array([35, 100, 30])
+        limite_superior_verde = np.array([100, 255, 255])
+        
+        # Crear máscara para verde
+        mascara_verde = cv2.inRange(image_hsv, limite_inferior_verde, limite_superior_verde)
 
-    # Rango de piel (ajustar según tu tono y luz)
-    lower_skin = np.array([0, 20, 70], dtype=np.uint8)
-    upper_skin = np.array([20, 255, 255], dtype=np.uint8)
+        # Convertir mascara a uint8
+        S_uint8 = (mascara_verde * 255).astype(np.uint8)
 
-    # Crear máscara
-    mask = cv2.inRange(hsv, lower_skin, upper_skin)
+        # Encontrar objetos (contornos)
+        contours, _ = cv2.findContours(S_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Variables para determinar estado de la mano
+        estado_mano = "No detectada"
+        color_estado = (0, 0, 255)  # Rojo por defecto
+        area = 0  # Inicializar área
 
-    # Suavizar máscara
-    mask = cv2.GaussianBlur(mask, (5, 5), 0)
+        # Create a blank mask and draw filtered contours on it
+        mask = np.zeros(frame.shape[:2], dtype=np.uint8)  # máscara de 1 canal (grayscale)
+        filtered_contours = []
+        
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area > 10000 and area < 30000:  # Mano cerrada
+                filtered_contours.append(contour)
+                estado_mano = "Mano CERRADA"
+                color_estado = (0, 0, 255)  # Rojo
+            elif area > 30000:  # Mano abierta
+                filtered_contours.append(contour)
+                estado_mano = "Mano ABIERTA"
+                color_estado = (0, 255, 0)  # Verde
 
-    # Buscar contornos
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(mask, filtered_contours, -1, (255), cv2.FILLED)
+        
+        # Aplicar mascara a la imagen original opcional
+        # masked_img = cv2.bitwise_and(frame, frame, mask=mask)
+        
+        # Mostrar el estado en la imagen principal
+        cv2.putText(frame, estado_mano, (50, 50), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, color_estado, 2, cv2.LINE_AA)
+        
+        # También mostrar el área si hay contornos detectados
+        if filtered_contours:
+            area_actual = cv2.contourArea(filtered_contours[0])
+            cv2.putText(frame, f"Area: {area_actual:.0f}", (50, 90), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_estado, 2, cv2.LINE_AA)
+            
+        # Mostrar ventanas
+        cv2.imshow("Deteccion de Mano", frame)
+        # cv2.imshow("Mascara", masked_img)
 
-    if contours:
-        # Tomar contorno más grande (mano)
-        c = max(contours, key=cv2.contourArea)
-
-        # Dibujar contorno
-        cv2.drawContours(frame, [c], -1, (0, 255, 0), 2)
-
-        # Convex hull
-        hull = cv2.convexHull(c)
-        cv2.drawContours(frame, [hull], -1, (0, 0, 255), 2)
-
-        # Defectos de convexidad
-        hull_indices = cv2.convexHull(c, returnPoints=False)
-        if len(hull_indices) > 3:
-            defects = cv2.convexityDefects(c, hull_indices)
-            if defects is not None:
-                count_defects = 0
-                for i in range(defects.shape[0]):
-                    s, e, f, d = defects[i, 0]
-                    start = tuple(c[s][0])
-                    end = tuple(c[e][0])
-                    far = tuple(c[f][0])
-
-                    # Geometría para contar dedos
-                    a = np.linalg.norm(np.array(end) - np.array(start))
-                    b = np.linalg.norm(np.array(far) - np.array(start))
-                    c_len = np.linalg.norm(np.array(end) - np.array(far))
-                    angle = np.arccos((b**2 + c_len**2 - a**2) / (2*b*c_len))
-
-                    if angle <= np.pi/2:  # Ángulo menor a 90° => dedo extendido
-                        count_defects += 1
-                        cv2.circle(frame, far, 5, (255, 0, 0), -1)
-
-                # Dedos extendidos ≈ defectos + 1
-                dedos = count_defects + 1
-
-                # Estado de la mano
-                if dedos >= 4:
-                    estado = "Abierta"
-                else:
-                    estado = "Cerrada"
-
-                # Posición horizontal (izq, der, centro)
-                x, y, w, h = cv2.boundingRect(c)
-                cx = x + w // 2
-                if cx < frame.shape[1] // 3:
-                    posicion = "Izquierda"
-                elif cx > 2 * frame.shape[1] // 3:
-                    posicion = "Derecha"
-                else:
-                    posicion = "Centro"
-
-                print(f"Mano {estado}, posicion {posicion}")
-
-                # Mostrar texto en pantalla
-                cv2.putText(frame, f"{estado} - {posicion}", (50, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-
-    # Mostrar ventanas
-    cv2.imshow("Deteccion de Mano", frame)
-    cv2.imshow("Mascara", mask)
-
-    # Salir con 'q'
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # Salir con 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
     cap.release()
     cv2.destroyAllWindows()
+    
+    return area
+
