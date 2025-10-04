@@ -1,8 +1,12 @@
 import pygame
 import os
+import processing
+import threading
 from game import Game
 
 def main():
+    global state, position
+    
     pygame.init()
     pygame.mixer.init()
 
@@ -17,7 +21,8 @@ def main():
         pygame.mixer.music.load(music_path)
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)  # repetir siempre
-
+    hilo_hand_state = threading.Thread(target=processing.hand_state, daemon=True)
+    hilo_hand_state.start()
     # Crear instancia del juego
     game = Game(screen, WIDTH, HEIGHT)
 

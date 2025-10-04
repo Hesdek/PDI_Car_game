@@ -1,7 +1,12 @@
 import cv2
 import numpy as np
+import threading
 
-def detectar_estado_mano():
+state = "No detectada"
+position = "Centro"
+
+def hand_state():
+    global state, position
     # Abrir cámara
     cap = cv2.VideoCapture(0)
 
@@ -17,11 +22,11 @@ def detectar_estado_mano():
         image_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # Cambié RGB2HSV por BGR2HSV
         
         # Rango para VERDE https://www.selecolor.com/en/hsv-color-picker/
-        limite_inferior_verde = np.array([35, 100, 30])
-        limite_superior_verde = np.array([100, 255, 255])
+        limite_inferior = np.array([35, 100, 30])
+        limite_superior = np.array([100, 255, 255])
         
         # Crear máscara para verde
-        mascara_verde = cv2.inRange(image_hsv, limite_inferior_verde, limite_superior_verde)
+        mascara_verde = cv2.inRange(image_hsv, limite_inferior, limite_superior)
 
         # Convertir mascara a uint8
         S_uint8 = (mascara_verde * 255).astype(np.uint8)
@@ -30,10 +35,10 @@ def detectar_estado_mano():
         contours, _ = cv2.findContours(S_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         # Variables para determinar estado de la mano
-        estado_mano = "No detectada"
+        state = "No detectada"
         color_estado = (0, 0, 255)  # Rojo por defecto
         area = 0  # Inicializar área
-        posicion_mano = "Centro"
+        position = "Centro"
         centro_x = 0
 
         # Create a blank mask and draw filtered contours on it
@@ -57,9 +62,9 @@ def detectar_estado_mano():
                 tercio_derecho = 2 * ancho_frame // 3
                 
                 if centro_x < tercio_izquierdo:
-                    posicion_mano = "Izquierda"
+                    position = "Izquierda"
                 elif centro_x > tercio_derecho:
-                    posicion_mano = "Derecha"
+                    position = "Derecha"
 
                 
                 # Dibujar punto central
@@ -71,24 +76,24 @@ def detectar_estado_mano():
                 cv2.line(frame, (tercio_derecho, 0), (tercio_derecho, frame.shape[0]), (255, 255, 0), 2)
             
             # Determinar estado de la mano (abierta/cerrada)
-            if 10000 < area < 10000:
-                estado_mano = "Mano CERRADA"
-            elif area >= 10000:
-                estado_mano = "Mano ABIERTA"
+            if  area < 20000:
+                state = "CERRADA"
+            elif area >= 20000:
+                state = "ABIERTA"
 
         # Mostrar información
-        color_estado = (0, 255, 0) if estado_mano == "Mano ABIERTA" else (0, 0, 255)
+        color_estado = (0, 255, 0) if state == "Mano ABIERTA" else (0, 0, 255)
         color_posicion = (255, 255, 0)  # Azul claro para posición
         cv2.drawContours(mask, filtered_contours, -1, (255), cv2.FILLED)
         
         # Información del estado de la mano
-        cv2.putText(frame, f"Estado: {estado_mano}", (50, 50), 
+        cv2.putText(frame, f"Estado: {state}", (50, 50), 
                    cv2.FONT_HERSHEY_SIMPLEX, 1, color_estado, 2)
         cv2.putText(frame, f"Area: {area:.0f}", (50, 90), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_estado, 2)
         
         # Información de la posición
-        cv2.putText(frame, f"Posicion: {posicion_mano}", (50, 130), 
+        cv2.putText(frame, f"Posicion: {position}", (50, 130), 
                    cv2.FONT_HERSHEY_SIMPLEX, 1, color_posicion, 2)
         cv2.putText(frame, f"Centro X: {centro_x}", (50, 170), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_posicion, 2)
@@ -104,5 +109,5 @@ def detectar_estado_mano():
 
     cap.release()
     cv2.destroyAllWindows()
-    return area, posicion_mano
+    return state, position
 
