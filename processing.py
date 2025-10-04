@@ -81,9 +81,6 @@ def detectar_estado_mano():
         color_posicion = (255, 255, 0)  # Azul claro para posición
         cv2.drawContours(mask, filtered_contours, -1, (255), cv2.FILLED)
         
-        # Aplicar mascara a la imagen original opcional
-        # masked_img = cv2.bitwise_and(frame, frame, mask=mask)
-        
         # Información del estado de la mano
         cv2.putText(frame, f"Estado: {estado_mano}", (50, 50), 
                    cv2.FONT_HERSHEY_SIMPLEX, 1, color_estado, 2)
