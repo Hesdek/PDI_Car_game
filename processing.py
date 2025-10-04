@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 import threading
 
-state = "No detectada"
-position = "Centro"
+state = {"value":"No detectada"}
+position = {"value":"Centro"}
 
 def hand_state():
     global state, position
@@ -35,10 +35,8 @@ def hand_state():
         contours, _ = cv2.findContours(S_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         # Variables para determinar estado de la mano
-        state = "No detectada"
         color_estado = (0, 0, 255)  # Rojo por defecto
         area = 0  # Inicializar área
-        position = "Centro"
         centro_x = 0
 
         # Create a blank mask and draw filtered contours on it
@@ -62,9 +60,9 @@ def hand_state():
                 tercio_derecho = 2 * ancho_frame // 3
                 
                 if centro_x < tercio_izquierdo:
-                    position = "Izquierda"
+                    position["value"] = "Izquierda"
                 elif centro_x > tercio_derecho:
-                    position = "Derecha"
+                    position["value"] = "Derecha"
 
                 
                 # Dibujar punto central
@@ -77,9 +75,9 @@ def hand_state():
             
             # Determinar estado de la mano (abierta/cerrada)
             if  area < 20000:
-                state = "CERRADA"
+                state["value"] = "CERRADA"
             elif area >= 20000:
-                state = "ABIERTA"
+                state["value"] = "ABIERTA"
 
         # Mostrar información
         color_estado = (0, 255, 0) if state == "Mano ABIERTA" else (0, 0, 255)
@@ -109,5 +107,9 @@ def hand_state():
 
     cap.release()
     cv2.destroyAllWindows()
-    return state, position
+    
 
+def start_processing():
+    # Inicia el hilo en paralelo
+    t = threading.Thread(target=hand_state, daemon=True)
+    t.start()

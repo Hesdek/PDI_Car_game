@@ -4,18 +4,19 @@ from scene import Scene
 from player import Player
 
 class Game:
-    def __init__(self, screen, width, height, assets_path="assets"):
+    def __init__(self, screen, width, height, assets_path="assets", state=None, position=None):
         self.screen = screen
         self.width = width
         self.height = height
+        self.position = position
         self.scene = Scene(screen, width, height, assets_path=assets_path)
-        self.player = Player(screen, width, height, assets_path=assets_path)
+        self.player = Player(screen, width, height, assets_path=assets_path, position=position)
         self.clock = pygame.time.Clock()
         self.FPS = 60
 
     def update(self):
         dt = self.clock.tick(self.FPS) / 1000.0
-        # input & player movement
+        # input & player movement        
         self.player.handle_input(dt)
         self.player.update(dt)
         # actualizar escena (scroll + fases)
