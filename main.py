@@ -1,5 +1,43 @@
-from assets import screen
-from game import game_loop
+import pygame
+import os
+from game import Game
 
-while True:
-    game_loop()  # vuelve a iniciar tras un choque
+def main():
+    pygame.init()
+    pygame.mixer.init()
+
+    # Configuración de ventana
+    WIDTH, HEIGHT = 1000, 600
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Exidium 🚗")
+
+    # Reproducir música de fondo
+    music_path = os.path.join("assets", "song.mp3")
+    if os.path.exists(music_path):
+        pygame.mixer.music.load(music_path)
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)  # repetir siempre
+
+    # Crear instancia del juego
+    game = Game(screen, WIDTH, HEIGHT)
+
+    # Loop principal
+    running = True
+    clock = pygame.time.Clock()
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        game.update()
+        game.draw()
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
