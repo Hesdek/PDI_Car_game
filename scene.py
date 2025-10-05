@@ -26,6 +26,16 @@ class Scene:
         self.HEIGHT = height
         self.assets_path = assets_path
 
+        # Cargar sprites del coche
+        self.car_sprite = load_image(os.path.join(assets_path, "car.png"), (50, 100))  # Neutral
+        self.car_sprite_left = load_image(os.path.join(assets_path, "car_left.png"), (50, 100))  # Izquierda
+        self.car_sprite_right = load_image(os.path.join(assets_path, "car_right.png"), (50, 100))  # Derecha
+
+        self.current_car_sprite = self.car_sprite  # Sprite actual del coche
+
+        # Variable para rastrear el desplazamiento anterior
+        self.previous_player_offset = 0.0
+
         # colores
         self.SKY_COLOR = (1, 10, 28)
         self.GRASS_COLOR = (0, 50, 0)
@@ -82,7 +92,7 @@ class Scene:
         self.minimap.draw(sx, sy, sw, sh, player_distance=player_distance, player_offset=player_offset)
 
     def draw(self, player_offset=0.0, show_minimap=True):
-        # fondo cielo
+        # Fondo cielo
         self.screen.fill(self.SKY_COLOR)
 
         # ciudad
@@ -90,7 +100,7 @@ class Scene:
         if self.city_img:
             self.screen.blit(self.city_img, (0, city_y))
             dark = pygame.Surface((self.WIDTH, self.city_img.get_height()), pygame.SRCALPHA)
-            dark.fill((0,0,0,160))
+            dark.fill((0, 0, 0, 160))
             self.screen.blit(dark, (0, city_y))
 
         # pasto
