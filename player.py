@@ -3,10 +3,11 @@ import os
 from utils import load_image
 
 class Player:
-    def __init__(self, screen, width, height, assets_path="assets"):
+    def __init__(self, screen, width, height, assets_path="assets",position="Centro"):
         self.screen = screen
         self.WIDTH = width
         self.HEIGHT = height
+        self.position = position if position is not None else {"value": "Centro"}
 
         # dimensiones del sprite
         self.PW, self.PH = 160, 90
@@ -27,9 +28,13 @@ class Player:
     def handle_input(self, dt):
         keys = pygame.key.get_pressed()
         steer = 0.0
-        if keys[pygame.K_LEFT]:
+        #if keys[pygame.K_LEFT]:
+        #    steer -= 1.0
+        #if keys[pygame.K_RIGHT]:
+        #    steer += 1.0
+        if self.position["value"] == "Izquierda":
             steer -= 1.0
-        if keys[pygame.K_RIGHT]:
+        if self.position["value"] == "Derecha":
             steer += 1.0
 
         # actualizar target_offset

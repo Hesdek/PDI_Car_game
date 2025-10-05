@@ -1,7 +1,12 @@
 import cv2
 import numpy as np
+import threading
 
-def camera_processing():
+state = {"value":"No detectada"}
+position = {"value":"Centro"}
+
+def hand_state():
+    global state, position
     # Abrir cámara
     cap = cv2.VideoCapture(0)
 
@@ -14,86 +19,97 @@ def camera_processing():
         frame = cv2.flip(frame, 1)
 
         # Convertir a HSV
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        image_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # Cambié RGB2HSV por BGR2HSV
+        
+        # Rango para VERDE https://www.selecolor.com/en/hsv-color-picker/
+        limite_inferior = np.array([35, 100, 30])
+        limite_superior = np.array([100, 255, 255])
+        
+        # Crear máscara para verde
+        mascara_verde = cv2.inRange(image_hsv, limite_inferior, limite_superior)
 
-        # Rango de piel (ajustar según tu tono y luz)
-        lower_skin = np.array([0, 20, 70], dtype=np.uint8)
-        upper_skin = np.array([20, 255, 255], dtype=np.uint8)
+        # Convertir mascara a uint8
+        S_uint8 = (mascara_verde * 255).astype(np.uint8)
 
-        # Crear máscara
-        mask = cv2.inRange(hsv, lower_skin, upper_skin)
+        # Encontrar objetos (contornos)
+        contours, _ = cv2.findContours(S_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Variables para determinar estado de la mano
+        color_estado = (0, 0, 255)  # Rojo por defecto
+        area = 0  # Inicializar área
+        centro_x = 0
 
-        # Suavizar máscara
-        mask = cv2.GaussianBlur(mask, (5, 5), 0)
-
-        # Buscar contornos
-        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
+        # Create a blank mask and draw filtered contours on it
+        mask = np.zeros(frame.shape[:2], dtype=np.uint8)  # máscara de 1 canal (grayscale)
+        filtered_contours = []
+        
         if contours:
-            # Tomar contorno más grande (mano)
-            c = max(contours, key=cv2.contourArea)
+            # Tomar el contorno más grande
+            contorno_principal = max(contours, key=cv2.contourArea)
+            area = cv2.contourArea(contorno_principal)
+            
+            # Calcular el centro del contorno
+            M = cv2.moments(contorno_principal)
+            if M["m00"] != 0:
+                centro_x = int(M["m10"] / M["m00"])
+                centro_y = int(M["m01"] / M["m00"])
+                
+                # Determinar posición izquierda/derecha
+                ancho_frame = frame.shape[1]
+                tercio_izquierdo = ancho_frame // 3
+                tercio_derecho = 2 * ancho_frame // 3
+                
+                if centro_x < tercio_izquierdo:
+                    position["value"] = "Izquierda"
+                elif centro_x > tercio_derecho:
+                    position["value"] = "Derecha"
 
-            # Dibujar contorno
-            cv2.drawContours(frame, [c], -1, (0, 255, 0), 2)
+                
+                # Dibujar punto central
+                cv2.circle(frame, (centro_x, centro_y), 8, (255, 0, 0), -1)
+                
+                # Dibujar líneas divisorias
+                cv2.line(frame, (tercio_izquierdo, 0), (tercio_izquierdo, frame.shape[0]), (255, 255, 0), 2)
+                
+                cv2.line(frame, (tercio_derecho, 0), (tercio_derecho, frame.shape[0]), (255, 255, 0), 2)
+            
+            # Determinar estado de la mano (abierta/cerrada)
+            if  area < 20000:
+                state["value"] = "CERRADA"
+            elif area >= 20000:
+                state["value"] = "ABIERTA"
 
-            # Convex hull
-            hull = cv2.convexHull(c)
-            cv2.drawContours(frame, [hull], -1, (0, 0, 255), 2)
-
-            # Defectos de convexidad
-            hull_indices = cv2.convexHull(c, returnPoints=False)
-            if len(hull_indices) > 3:
-                defects = cv2.convexityDefects(c, hull_indices)
-                if defects is not None:
-                    count_defects = 0
-                    for i in range(defects.shape[0]):
-                        s, e, f, d = defects[i, 0]
-                        start = tuple(c[s][0])
-                        end = tuple(c[e][0])
-                        far = tuple(c[f][0])
-
-                        # Geometría para contar dedos
-                        a = np.linalg.norm(np.array(end) - np.array(start))
-                        b = np.linalg.norm(np.array(far) - np.array(start))
-                        c_len = np.linalg.norm(np.array(end) - np.array(far))
-                        angle = np.arccos((b**2 + c_len**2 - a**2) / (2*b*c_len))
-
-                        if angle <= np.pi/2:  # Ángulo menor a 90° => dedo extendido
-                            count_defects += 1
-                            cv2.circle(frame, far, 5, (255, 0, 0), -1)
-
-                    # Dedos extendidos ≈ defectos + 1
-                    dedos = count_defects + 1
-
-                    # Estado de la mano
-                    if dedos >= 4:
-                        estado = "Abierta"
-                    else:
-                        estado = "Cerrada"
-
-                    # Posición horizontal (izq, der, centro)
-                    x, y, w, h = cv2.boundingRect(c)
-                    cx = x + w // 2
-                    if cx < frame.shape[1] // 3:
-                        posicion = "Izquierda"
-                    elif cx > 2 * frame.shape[1] // 3:
-                        posicion = "Derecha"
-                    else:
-                        posicion = "Centro"
-
-                    print(f"Mano {estado}, posicion {posicion}")
-
-                    # Mostrar texto en pantalla
-                    cv2.putText(frame, f"{estado} - {posicion}", (50, 50),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-
-        # Mostrar ventanas
+        # Mostrar información
+        color_estado = (0, 255, 0) if state == "Mano ABIERTA" else (0, 0, 255)
+        color_posicion = (255, 255, 0)  # Azul claro para posición
+        cv2.drawContours(mask, filtered_contours, -1, (255), cv2.FILLED)
+        
+        # Información del estado de la mano
+        cv2.putText(frame, f"Estado: {state}", (50, 50), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1, color_estado, 2)
+        cv2.putText(frame, f"Area: {area:.0f}", (50, 90), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_estado, 2)
+        
+        # Información de la posición
+        cv2.putText(frame, f"Posicion: {position}", (50, 130), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1, color_posicion, 2)
+        cv2.putText(frame, f"Centro X: {centro_x}", (50, 170), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_posicion, 2)
+        
+        # Mostrar coordenadas en la parte superior derecha
+        cv2.putText(frame, f"Frame: {frame.shape[1]}x{frame.shape[0]}", 
+                   (frame.shape[1] - 250, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+        
         cv2.imshow("Deteccion de Mano", frame)
-        cv2.imshow("Mascara", mask)
-
-        # Salir con 'q'
+        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
+    
+
+def start_processing():
+    # Inicia el hilo en paralelo
+    t = threading.Thread(target=hand_state, daemon=True)
+    t.start()

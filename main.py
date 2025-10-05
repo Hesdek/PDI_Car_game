@@ -1,8 +1,10 @@
 import pygame
 import os
+from processing import start_processing, state, position
 from game import Game
 
 def main():
+    
     pygame.init()
     pygame.mixer.init()
 
@@ -17,9 +19,12 @@ def main():
         pygame.mixer.music.load(music_path)
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)  # repetir siempre
-
+    
+    # Iniciar hilo para procesamiento de cámara
+    start_processing()
+    
     # Crear instancia del juego
-    game = Game(screen, WIDTH, HEIGHT)
+    game = Game(screen, WIDTH, HEIGHT, assets_path="assets", state=state, position=position)
 
     # Loop principal
     running = True
