@@ -28,10 +28,6 @@ class Player:
     def handle_input(self, dt):
         keys = pygame.key.get_pressed()
         steer = 0.0
-        #if keys[pygame.K_LEFT]:
-        #    steer -= 1.0
-        #if keys[pygame.K_RIGHT]:
-        #    steer += 1.0
         if self.position["value"] == "Izquierda":
             steer -= 1.0
         if self.position["value"] == "Derecha":

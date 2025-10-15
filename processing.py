@@ -69,9 +69,9 @@ def hand_state():
                 cv2.circle(frame, (centro_x, centro_y), 8, (255, 0, 0), -1)
                 
                 # Dibujar líneas divisorias
-                cv2.line(frame, (tercio_izquierdo, 0), (tercio_izquierdo, frame.shape[0]), (255, 255, 0), 2)
+               # cv2.line(frame, (tercio_izquierdo, 0), (tercio_izquierdo, frame.shape[0]), (255, 255, 0), 2)
                 
-                cv2.line(frame, (tercio_derecho, 0), (tercio_derecho, frame.shape[0]), (255, 255, 0), 2)
+               # cv2.line(frame, (tercio_derecho, 0), (tercio_derecho, frame.shape[0]), (255, 255, 0), 2)
             
             # Determinar estado de la mano (abierta/cerrada)
             if  area < 20000:
@@ -80,22 +80,18 @@ def hand_state():
                 state["value"] = "ABIERTA"
 
         # Mostrar información
-        color_estado = (0, 255, 0) if state == "Mano ABIERTA" else (0, 0, 255)
+        color_estado = (0, 255, 0) if state == "Mano Abierta" else (0, 0, 255)
         color_posicion = (255, 255, 0)  # Azul claro para posición
         cv2.drawContours(mask, filtered_contours, -1, (255), cv2.FILLED)
         
         # Información del estado de la mano
         cv2.putText(frame, f"Estado: {state}", (50, 50), 
                    cv2.FONT_HERSHEY_SIMPLEX, 1, color_estado, 2)
-        cv2.putText(frame, f"Area: {area:.0f}", (50, 90), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_estado, 2)
         
         # Información de la posición
         cv2.putText(frame, f"Posicion: {position}", (50, 130), 
                    cv2.FONT_HERSHEY_SIMPLEX, 1, color_posicion, 2)
-        cv2.putText(frame, f"Centro X: {centro_x}", (50, 170), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_posicion, 2)
-        
+       
         # Mostrar coordenadas en la parte superior derecha
         cv2.putText(frame, f"Frame: {frame.shape[1]}x{frame.shape[0]}", 
                    (frame.shape[1] - 250, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)

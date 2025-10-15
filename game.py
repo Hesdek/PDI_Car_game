@@ -9,7 +9,7 @@ class Game:
         self.width = width
         self.height = height
         self.position = position
-        self.scene = Scene(screen, width, height, assets_path=assets_path)
+        self.scene = Scene(screen, width, height, assets_path=assets_path, state=state)
         self.player = Player(screen, width, height, assets_path=assets_path, position=position)
         self.clock = pygame.time.Clock()
         self.FPS = 60
