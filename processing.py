@@ -166,7 +166,7 @@ def hand_state():
         # --- Mostrar frame original---
         cv2.namedWindow("Deteccion de Mano", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Deteccion de Mano", 300, 200)
-        cv2.moveWindow("Deteccion de Mano", 1000, 100)
+        cv2.moveWindow("Deteccion de Mano", 0, 0)
         cv2.imshow("Deteccion de Mano", frame)
         # --- Salir con tecla 'q' ---
         if cv2.waitKey(1) & 0xFF == ord('q'):
