@@ -1,4 +1,12 @@
-# scene.py
+#--------------------------------------------------------------------------
+#------- HIGHEST GEAR ----------------------------------------------
+#------- Procesamiento de mano por camara-------------------------------------------
+#------- Por: Daniel Perez    daniel.perez19@udea.edu.co --------------
+#-------      Edisson Chamorro    john.chamorro@udea.edu.co -----------------
+#-------      Estudiantes Departamento Electrónica y Telecomunicaciones -------------------
+#------- Curso B�sico de Procesamiento de Im�genes y Visi�n Artificial-----
+#-------  Octubre de 2025--------------------------------------------------
+
 import pygame
 import pygame.gfxdraw as gfx
 import os
@@ -20,11 +28,13 @@ def make_fog_surf(width, fog_height, sky_color):
     return pygame.transform.smoothscale(small_fog, (width, fog_height)).convert_alpha()
 
 class Scene:
-    def __init__(self, screen, width, height, assets_path="assets"):
+    def __init__(self, screen, width, height, assets_path="assets", state=None):
         self.screen = screen
         self.WIDTH = width
         self.HEIGHT = height
         self.assets_path = assets_path
+        self.state = state if state is not None else {"value": "No detectada"}
+
 
         # Cargar sprites del coche
         self.car_sprite = load_image(os.path.join(assets_path, "car.png"), (50, 100))  # Neutral
@@ -49,7 +59,7 @@ class Scene:
 
         # distancia / velocidad
         self.distance = 0.0
-        self.base_road_speed = 3.0
+        self.base_road_speed = 2.0
         self.road_speed = self.base_road_speed
 
         # fases
@@ -75,6 +85,14 @@ class Scene:
         self.minimap = Minimap(self.screen, self.track)
 
     def update(self, dt):
+         # --- Control de velocidad según la mano ---
+        if self.state["value"] == "ABIERTA":
+        # Acelera suavemente hasta un máximo
+            self.road_speed = min(self.road_speed + 0.05, 10.0)
+        else:
+        # Desacelera suavemente hasta la velocidad base
+            self.road_speed = max(self.road_speed - 0.08, 0.0)
+        
         self.distance += self.road_speed * dt * 60.0
         self.dash_phase += self.road_speed * self.DASH_PHASE_SPEED * dt
         self.curb_phase += self.road_speed * self.CURB_PHASE_SPEED * dt

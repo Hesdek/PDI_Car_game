@@ -1,7 +1,18 @@
+#--------------------------------------------------------------------------
+#------- HIGHEST GEAR ----------------------------------------------
+#------- Procesamiento de mano por camara-------------------------------------------
+#------- Por: Daniel Perez    daniel.perez19@udea.edu.co --------------
+#-------      Edisson Chamorro    john.chamorro@udea.edu.co -----------------
+#-------      Estudiantes Departamento Electrónica y Telecomunicaciones -------------------
+#------- Curso B�sico de Procesamiento de Im�genes y Visi�n Artificial-----
+#-------  Octubre de 2025--------------------------------------------------
+#--------------------------------------------------------------------------
+
 import pygame
 import os
 from processing import start_processing, state, position
 from game import Game
+
 
 def main():
     
@@ -34,12 +45,17 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                 running = False
 
         game.update()
         game.draw()
 
         pygame.display.flip()
         clock.tick(60)
+     
 
     pygame.quit()
 
