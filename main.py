@@ -13,6 +13,7 @@ import os
 from processing import start_processing, state, position
 from game import Game
 
+
 def main():
     
     pygame.init()
@@ -44,12 +45,17 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                 running = False
 
         game.update()
         game.draw()
 
         pygame.display.flip()
         clock.tick(60)
+     
 
     pygame.quit()
 
