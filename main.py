@@ -26,7 +26,7 @@ def main():
     # Crear instancia del juego
     game = Game(screen, WIDTH, HEIGHT, assets_path="assets", state=state, position=position)
 
-    # Loop principal
+    # Loop principal.
     running = True
     clock = pygame.time.Clock()
 
