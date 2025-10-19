@@ -74,7 +74,6 @@ def hand_state():
         if len(contours) == 0:
             state["value"] = "No detectada"
             position["value"] = "Centro"
-            cv2.imshow("Detección de Mano", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             continue
@@ -88,7 +87,6 @@ def hand_state():
         if area < 3000 or area > 100000:
             state["value"] = "No detectada"
             position["value"] = "Centro"
-            cv2.imshow("Detección de Mano", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             continue
@@ -166,7 +164,10 @@ def hand_state():
         cv2.putText(frame, f"Posicion: {position['value']}", (50, 100),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         # --- Mostrar frame original---
-        cv2.imshow("Detección de Mano", frame)
+        cv2.namedWindow("Deteccion de Mano", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("Deteccion de Mano", 300, 200)
+        cv2.moveWindow("Deteccion de Mano", 1000, 100)
+        cv2.imshow("Deteccion de Mano", frame)
         # --- Salir con tecla 'q' ---
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -177,7 +178,7 @@ def hand_state():
 
 
 def start_processing():
-    # --- Ejecutar la detección de mano en un hilo separado.
+    # --- Ejecutar la Deteccion de mano en un hilo separado.
     t = threading.Thread(target=hand_state, daemon=True)
     t.start()
 
