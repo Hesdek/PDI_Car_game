@@ -1,3 +1,13 @@
+#--------------------------------------------------------------------------
+#------- HIGHEST GEAR ----------------------------------------------
+#------- Procesamiento de mano por camara-------------------------------------------
+#------- Por: Daniel Perez    daniel.perez19@udea.edu.co --------------
+#-------      Edisson Chamorro    john.chamorro@udea.edu.co -----------------
+#-------      Estudiantes Departamento Electrónica y Telecomunicaciones -------------------
+#------- Curso B�sico de Procesamiento de Im�genes y Visi�n Artificial-----
+#-------  Octubre de 2025--------------------------------------------------
+#--------------------------------------------------------------------------
+
 import pygame
 import os
 from processing import start_processing, state, position
