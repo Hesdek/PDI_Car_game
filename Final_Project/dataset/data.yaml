@@ -1,0 +1,4 @@
+names: ['PARE', 'VELOCIDAD', 'CEDA', 'PROHIBIDO', 'SENTIDO']
+nc: 5
+train: dataset/images/train
+val: dataset/images/val

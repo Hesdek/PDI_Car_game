@@ -22,7 +22,7 @@ def main():
     # Configuración de ventana
     WIDTH, HEIGHT = 1000, 600
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Exidium 🚗")
+    pygame.display.set_caption("Highest Gear 🚗")
 
     # Reproducir música de fondo
     music_path = os.path.join("assets", "song.mp3")
