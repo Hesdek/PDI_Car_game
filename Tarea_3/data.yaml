@@ -1,0 +1,6 @@
+train: Tarea_3/dataset/train/images
+val: Tarea_3/dataset/val/images
+test: Tarea_3/dataset/test/images
+
+nc: 5   # cantidad de señales SI LAS TIENES CONTADAS
+names: ["PARE", "VELOCIDAD_MAX", "GIRO_IZQ", "GIRO_DER", "OTRA"]
