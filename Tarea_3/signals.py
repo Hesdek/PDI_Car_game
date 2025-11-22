@@ -7,7 +7,7 @@ def main():
     # Entrenar
     model.train(
         data="data.yaml",   # YAML generado automáticamente
-        epochs=30,
+        epochs=100,
         imgsz=640,
         batch=16
         #cpu=0  # usa GPU si tienes, si no, cámbialo a 'cpu'
