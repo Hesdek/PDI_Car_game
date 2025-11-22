@@ -5,7 +5,7 @@ from ultralytics import YOLO
 model = YOLO("runs/detect/train/weights/best.pt")   # Ajusta la ruta si es distinta
 
 # Ruta del video a analizar
-VIDEO_PATH = "video.mp4"   # Cambia por el video que quieras
+VIDEO_PATH = "dataset/test/videos/video3.mp4"   # Cambia por el video que quieras
 
 cap = cv2.VideoCapture(VIDEO_PATH)
 
@@ -45,7 +45,7 @@ while True:
         )
 
     # Mostrar resultado
-    cv2.imshow("Detección de señales", frame)
+    cv2.imshow("Colombian traffic signs detection", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
