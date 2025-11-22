@@ -9,15 +9,15 @@ def main():
         data="data.yaml",   # YAML generado automáticamente
         epochs=30,
         imgsz=640,
-        batch=16,
-        cpu=0  # usa GPU si tienes, si no, cámbialo a 'cpu'
+        batch=16
+        #cpu=0  # usa GPU si tienes, si no, cámbialo a 'cpu'
     )
 
     # Evaluación automática
     model.val()
 
     # Prueba rápida con imágenes del test
-    results = model.predict("Tarea_3/dataset/test/images", save=True)
+    results = model.predict("dataset/test/images", save=True)
     print("Listo. Resultados guardados en runs/detect/predict/")
 
 if __name__ == "__main__":
