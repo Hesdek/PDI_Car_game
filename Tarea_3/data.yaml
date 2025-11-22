@@ -2,5 +2,5 @@ train: dataset/train/images
 val: dataset/val/images
 test: dataset/test/images
 
-nc: 5   # cantidad de señales SI LAS TIENES CONTADAS
+nc: 5   # cantidad de señales
 names: ["PARE", "VELOCIDAD_MAX", "GIRO_IZQ", "GIRO_DER", "PARADA_AUTOBUS"]
