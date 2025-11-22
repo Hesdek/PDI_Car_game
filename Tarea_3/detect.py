@@ -5,7 +5,7 @@ from ultralytics import YOLO
 # ======================
 #   CARGAR MODELO YOLO
 # ======================
-model = YOLO("runs/detect/train/weights/best.pt")
+model = YOLO("best.pt")
 
 # ======================
 #   RANGOS HSV
