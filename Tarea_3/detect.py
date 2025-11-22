@@ -32,7 +32,7 @@ def detectar_forma(contour):
 # ======================
 #   VIDEO
 # ======================
-cap = cv2.VideoCapture("dataset/test/videos/video3.mp4")
+cap = cv2.VideoCapture("dataset/test/videos/video1.mp4")
 
 while True:
     ret, frame = cap.read()
